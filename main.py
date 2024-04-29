@@ -15,7 +15,9 @@ tag_mappings = {
     "NUM": "Numeral",
     "ADV": "Advérbio",
     "CCONJ": "Conjunção Coordenativa",
-    "VERB": "Verbo"
+    "VERB": "Verbo",
+    "PRON": "Pronome",
+    "SCONJ": "Conjunção Subordinativa",
 }
 
 # Mapeamentos para tradução dos tipos de entidades nomeadas
@@ -29,7 +31,7 @@ entity_mappings = {
 }
 
 # Lê o conteúdo do arquivo de entrada
-with open("teste.txt", "r", encoding="utf-8") as file:
+with open("acidente.txt", "r", encoding="utf-8") as file:
     text = file.read()
 
 # Processa o texto com o modelo do Spacy
