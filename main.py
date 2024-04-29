@@ -30,6 +30,15 @@ entity_mappings = {
     "MISC": "Diversos"
 }
 
+def print_tree(sentence):
+    """Função para imprimir a árvore sintática de uma sentença"""
+    for token in sentence:
+        if token.head == token:
+            head_text = 'ROOT'
+        else:
+            head_text = token.head.text
+        print(f"{token.text} ({tag_mappings.get(token.pos_, token.pos_)}) <-- {head_text} ({tag_mappings.get(token.head.pos_, token.head.pos_)})")
+
 # Lê o conteúdo do arquivo de entrada
 with open("acidente.txt", "r", encoding="utf-8") as file:
     text = file.read()
@@ -48,3 +57,9 @@ print("\nEntidades nomeadas:")
 for ent in doc.ents:
     entity_pt = entity_mappings.get(ent.label_, ent.label_)  # Obtém a tradução ou usa a original
     print(f" - {ent.text}: {entity_pt}")
+
+# Analisa e imprime a árvore sintática de cada sentença
+print("\nÁrvore sintática de cada sentença:")
+for sent in doc.sents:
+    print(f"\nSentença: {sent.text}")
+    print_tree(sent)
