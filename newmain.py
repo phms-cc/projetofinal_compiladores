@@ -11,9 +11,67 @@ import urllib.parse
 from bs4 import BeautifulSoup
 import os
 
+# Mapeamentos para tradução das etiquetas de classificação gramatical
+tag_mappings = {
+    "PROPN": "Nome Próprio",
+    "AUX": "Auxiliar",
+    "DET": "Determinante",
+    "NOUN": "Substantivo",
+    "ADJ": "Adjetivo",
+    "PUNCT": "Pontuação",
+    "ADP": "Preposição",
+    "NUM": "Numeral",
+    "ADV": "Advérbio",
+    "CCONJ": "Conjunção Coordenativa",
+    "VERB": "Verbo",
+    "PRON": "Pronome",
+    "SCONJ": "Conjunção Subordinativa",
+}
+
+# Mapeamentos para tradução dos tipos de entidades nomeadas
+entity_mappings = {
+    "LOC": "Local",
+    "ORG": "Organização",
+    "PER": "Pessoa",
+    "DATE": "Data",
+    "TIME": "Hora",
+    "MISC": "Diversos"
+}
+
+def print_tree(sentence):
+    """Função para imprimir a árvore sintática de uma sentença"""
+    for token in sentence:
+        if token.head == token:
+            head_text = 'ROOT'
+        else:
+            head_text = token.head.text
+        print(f"{token.text} ({tag_mappings.get(token.pos_, token.pos_)}) <-- {head_text} ({tag_mappings.get(token.head.pos_, token.head.pos_)})")
+
+def listar_tokens_classificacao(doc):
+    """Função para listar os tokens e sua classificação gramatical""" 
+    print("Tokens e classificação gramatical:")
+    for token in doc:
+        tag_pt = tag_mappings.get(token.pos_, token.pos_)  # Obtém a tradução ou usa a original
+        print(f" - {token.text}: {tag_pt}")
+
+def listar_entidades_nomeadas(doc):
+    """Função para listar as entidades nomeadas no texto"""
+    print("Entidades nomeadas:")
+    for ent in doc.ents:
+        entity_pt = entity_mappings.get(ent.label_, ent.label_)  # Obtém a tradução ou usa a original
+        print(f" - {ent.text}: {entity_pt}")    
+
+def arvore_sintatica(doc):
+    """Função para imprimir a árvore sintática de cada sentença"""
+    print("\nÁrvore sintática de cada sentença:")
+    for sent in doc.sents:
+        print(f"\nSentença: {sent.text}")
+        print_tree(sent)
+
 # termos que não devem ser substituídos por sinônimos
 termos_excluidos = ["mais", "menos"]
 
+# Função para buscar no Google com Selenium
 def buscar_google_com_selenium(query):
     # Configurações do navegador
     chrome_options = Options()
@@ -48,6 +106,7 @@ def buscar_google_com_selenium(query):
             links.append(href)
     return links
 
+# Função para buscar sinônimos de uma palavra em um site
 def get_sinonimos(word):
     try:
         url = f"http://www.sinonimos.com.br/{word.lower()}/"
