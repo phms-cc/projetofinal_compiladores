@@ -10,6 +10,15 @@ import time
 import urllib.parse
 from bs4 import BeautifulSoup
 import os
+import nltk
+from nltk import CFG
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+
+
+# TO DO : Implementar reoganização das frases em conjunto com a aplicação de sinonimos
 
 # Mapeamentos para tradução das etiquetas de classificação gramatical
 tag_mappings = {
@@ -92,6 +101,19 @@ def buscar_google_com_selenium(query):
 
     # Aguardar para a página carregar completamente
     time.sleep(1)  
+ 
+    try:
+        tools_button = WebDriverWait(driver, 1).until(
+            EC.element_to_be_clickable((By.ID, "hdtb-tls")) 
+        )
+        tools_button.click()
+          
+        result_stats = WebDriverWait(driver, 1).until(
+            EC.visibility_of_element_located((By.ID, "result-stats"))
+        )
+        print("Quantidade de resultados:", result_stats.text)
+    except Exception as e:
+        print("Erro ao tentar encontrar o botão de ferramentas ou a quantidade de resultados:", e)
 
     # Obter o HTML da página
     html_content = driver.page_source
@@ -146,6 +168,9 @@ with open("acidente.txt", "r", encoding="utf-8") as file:
 
 # Processa o texto com o modelo do Spacy
 doc = nlp(text)
+
+# FAZ A ARVORE SINTATICA
+arvore_sintatica(doc)
 
 texto_reescrito = reescrever_sentenca(text)
 print(f"\nTexto reescrito: {texto_reescrito}")
