@@ -16,7 +16,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
+def classificar_sentenca(sentenca):
+    doc = nlp(sentenca)
+    classifications = [token.pos_ for token in doc if token.pos_ != 'SPACE']  
+    return classifications
 
 # TO DO : Implementar reoganização das frases em conjunto com a aplicação de sinonimos
 
@@ -47,6 +50,27 @@ entity_mappings = {
     "MISC": "Diversos"
 }
 
+def create_grammar():
+    """Cria uma gramática adaptada para a língua portuguesa usando as tags do spaCy, incluindo pronomes, símbolos e outros terminais."""
+    grammar = CFG.fromstring(
+      """Texto -> Sentenca PONTUACAO_FINAL | Sentenca PONTUACAO_FINAL Texto
+        Sentenca -> SintagmaNominal SintagmaVerbal | SintagmaVerbal SintagmaNominal | SintagmaNominal | SintagmaVerbal | SintagmaNominal SintagmaVerbal Conjuncao Sentenca | SintagmaVerbal Conjuncao Sentenca | SintagmaNominal SintagmaVerbal PronomeRelativo Sentenca
+        SintagmaNominal -> Determinante Substantivo | Determinante Substantivo Adjetivo | Pronome | Substantivo | Substantivo Adjetivo | Determinante Substantivo Conjuncao Determinante Substantivo | Determinante Substantivo Conjuncao Determinante Substantivo | Determinante Numeral | Numeral | Determinante | Preposicao Substantivo | Substantivo | Substantivo | Numeral Substantivo | Numeral Substantivo Adjetivo | Preposicao Substantivo | Determinante Numeral | Numeral
+        SintagmaVerbal -> Verbo | Verbo Adjetivo | Verbo Adverbio | Verbo SintagmaNominal | Verbo SintagmaNominal SintagmaNominal | Verbo Adverbio SintagmaNominal | Adverbio Verbo SintagmaNominal | Verbo Simbolo | Verbo SintagmaNominal Preposicao Determinante Substantivo Adjetivo | Verbo Substantivo Numeral | Verbo SintagmaNominal Preposicao Determinante Substantivo | Verbo SintagmaNominal Preposicao Determinante Substantivo Adjetivo | Adverbio Verbo SintagmaNominal Preposicao Substantivo
+        Determinante -> 'DET'
+        PronomeRelativo -> 'PRON'
+        Substantivo -> 'NOUN' | 'PROPN'
+        Pronome -> 'PRON'
+        Adjetivo -> 'ADJ'
+        Verbo -> 'VERB' | 'AUX' | 'AUX' 'VERB' 
+        Adverbio -> 'ADV'
+        Preposicao -> 'ADP'
+        Conjuncao -> 'CCONJ' | 'SCONJ'
+        Numeral -> 'NUM'
+        Simbolo -> 'SYM'
+        PONTUACAO_FINAL -> 'PUNCT'""")
+    return grammar
+
 def print_tree(sentence):
     """Função para imprimir a árvore sintática de uma sentença"""
     for token in sentence:
@@ -62,6 +86,14 @@ def listar_tokens_classificacao(doc):
     for token in doc:
         tag_pt = tag_mappings.get(token.pos_, token.pos_)  # Obtém a tradução ou usa a original
         print(f" - {token.text}: {tag_pt}")
+
+def get_classificacao_gramatical_token(doc, token_text):
+    """Função para obter a classificação gramatical de um token específico"""
+    for token in doc:
+        if token.text == token_text:
+            tag_pt = tag_mappings.get(token.pos_, token.pos_)  # Obtém a tradução ou usa a original
+            return tag_pt
+    return None
 
 def listar_entidades_nomeadas(doc):
     """Função para listar as entidades nomeadas no texto"""
@@ -163,14 +195,21 @@ def reescrever_sentenca(sentence):
 nlp = spacy.load("pt_core_news_sm")
 
 # Lê o conteúdo do arquivo de entrada
-with open("acidente.txt", "r", encoding="utf-8") as file:
+with open("t1.txt", "r", encoding="utf-8") as file:
     text = file.read()
+
+print("Texto original:")
+print(text)
 
 # Processa o texto com o modelo do Spacy
 doc = nlp(text)
 
-# FAZ A ARVORE SINTATICA
-arvore_sintatica(doc)
+# Exibe a classificação gramatical de cada token
+listar_tokens_classificacao(doc)
+
+# Exibe Classificação gramatical da frase
+classifications = classificar_sentenca(text)
+print(f"Classificações gramaticais: {' '.join(classifications)}")
 
 texto_reescrito = reescrever_sentenca(text)
 print(f"\nTexto reescrito: {texto_reescrito}")
